@@ -1,0 +1,29 @@
+#################################################################################################################
+# Reference
+#    https://hub.docker.com/r/ipython/notebook/
+#################################################################################################################
+FROM ipython/ipython:3.x
+
+MAINTAINER IPython Project <ipython-dev@scipy.org>
+RUN apt-get update && \
+    apt-get install -y python3-tk
+
+#################################################################################################################
+#           Python Setting
+#################################################################################################################
+ADD pip3.5-requirement.txt /home/
+RUN cd /home/ && pip3 install -r pip3.5-requirement.txt
+#################################################################################################################
+#           iPython Setting
+#################################################################################################################
+ADD python /home/
+ADD shell/notebook.sh /home/
+ADD data /home/
+RUN mkdir -p /notebooks
+
+ADD python /notebooks/
+VOLUME /notebooks
+WORKDIR /home/
+
+EXPOSE 8888
+
