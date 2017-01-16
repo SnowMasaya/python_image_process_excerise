@@ -94,7 +94,7 @@ test:
 # NOTE: Cannot use --rm on Circle CI, hence the seemingly
 # duplicate task.
 
-test-python-science : images/python-science
+test-python-image-process : images/python-image-process
 	$(DOCKER_RUN_KAGGLE)
 
 teardown:

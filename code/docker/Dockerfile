@@ -1,1 +1,1 @@
-dockerfiles/python-science
+dockerfiles/python-image-process
