@@ -18,7 +18,7 @@ RUN cd /home/ && pip3 install -r pip3.5-requirement.txt
 #################################################################################################################
 ADD python /home/
 ADD shell/notebook.sh /home/
-ADD data /home/
+ADD data /home/data/
 RUN mkdir -p /notebooks
 
 ADD python /notebooks/
