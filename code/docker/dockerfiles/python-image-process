@@ -6,7 +6,7 @@ FROM ipython/ipython:3.x
 
 MAINTAINER IPython Project <ipython-dev@scipy.org>
 RUN apt-get update && \
-    apt-get install -y python3-tk
+    apt-get install -y python3-tk python-guiqwt wget
 
 #################################################################################################################
 #           Python Setting
@@ -14,13 +14,19 @@ RUN apt-get update && \
 ADD pip3.5-requirement.txt /home/
 RUN cd /home/ && pip3 install -r pip3.5-requirement.txt
 #################################################################################################################
+#           Sift Setting
+#################################################################################################################
+RUN  wget http://www.vlfeat.org/download/vlfeat-0.9.20-bin.tar.gz && \
+     tar xvzf vlfeat-0.9.20-bin.tar.gz && \
+     chmod -R 755 vlfeat-0.9.20/bin/glnxa64 && \
+     mv vlfeat-0.9.20/bin/glnxa64/* /usr/local/bin/
+#################################################################################################################
 #           iPython Setting
 #################################################################################################################
 ADD python /home/
 ADD shell/notebook.sh /home/
 ADD data /home/data/
 RUN mkdir -p /notebooks
-
 ADD python /notebooks/
 VOLUME /notebooks
 WORKDIR /home/
