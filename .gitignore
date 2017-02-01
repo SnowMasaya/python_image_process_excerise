@@ -93,6 +93,9 @@ ENV/
 .idea
 .idea/*
 Data/
+data/
+data/*
 Data/*
 disk.vdi
+*.jpg
 *.pkl
