@@ -23,7 +23,7 @@ def process_image(imagename, resultname, params="--edge--thresh 10 --peak-thresh
     cmd = str("sift " + imagename + "--output=" + resultname +
               " " + params)
     os.system(cmd)
-    print("processed ", imagename, " to " resultname)
+    print("processed " + imagename + " to " + resultname)
 
 def read_features_from_file(filename):
     """
@@ -104,7 +104,7 @@ def appendimages(im1, im2):
 
     if row1 < row2:
         im1 = concatenate((im1, zeros((row2 - row1, im1.shape[1]))), axis=0)
-    else row1 > row2:
+    elif row1 > row2:
         im2 = concatenate((im2, zeros((row1 - row2, im2.shape[1]))), axis=0)
 
     return concatenate((im1, im2), axis=1)

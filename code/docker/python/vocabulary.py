@@ -5,7 +5,7 @@ from scipy.cluster.vq import *
 import sift
 
 
-class Vopcabulary(object):
+class Vocabulary(object):
     """
     Get the Image word vocabulary
     """
@@ -35,3 +35,28 @@ class Vopcabulary(object):
             descr.append(sift.read_features_from_file(featurefiles[1])[1])
             descriptors = vstack((descriptors, descr[i]))
 
+        self.voc, description = kmeans(descriptors[::subsampling,:], k, 1)
+        self.nbr_words = self.voc.shape[0]
+
+        imwords = zeros((nbr_images, self.nbr_words))
+        for i in range(nbr_images):
+            imwords[i] = self.project(descr[i])
+
+        nbr_occurences = sum((imwords > 0)*1, axis=0)
+
+        self.idf = log((1.0*nbr_images) / (1.0 * nbr_occurences))
+        self.trainingdata = featurefiles
+
+    def project(self, descriptors):
+        """
+        Mapping the descriptor to vacabuary and
+        Make the histogram
+        :param descriptors:
+        :return:
+        """
+        imhist = zeros((self.nbr_words))
+        words, distance = vq(descriptors, self.voc)
+        for w in words:
+            imhist[w] += 1
+
+        return imhist
