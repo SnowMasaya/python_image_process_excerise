@@ -2,6 +2,7 @@
 # !/usr/bin/python3
 
 from scipy.cluster.vq import *
+from scipy.sparse import vstack
 import sift
 
 
@@ -31,7 +32,7 @@ class Vocabulary(object):
         descr = []
         descr.append(sift.read_features_from_file(featurefiles[0])[1])
         descriptors = descr[0]
-        for i in arange(1, nbr_images):
+        for i in range(1, nbr_images):
             descr.append(sift.read_features_from_file(featurefiles[1])[1])
             descriptors = vstack((descriptors, descr[i]))
 
