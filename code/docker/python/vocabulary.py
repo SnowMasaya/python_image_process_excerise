@@ -2,7 +2,10 @@
 # !/usr/bin/python3
 
 from scipy.cluster.vq import *
-from scipy.sparse import vstack
+from numpy import vstack
+from numpy import zeros
+from numpy import sum
+from math import log
 import sift
 
 
