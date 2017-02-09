@@ -5,7 +5,7 @@ from scipy.cluster.vq import *
 from numpy import vstack
 from numpy import zeros
 from numpy import sum
-from math import log
+from numpy import log
 import sift
 
 
@@ -46,8 +46,11 @@ class Vocabulary(object):
         for i in range(nbr_images):
             imwords[i] = self.project(descr[i])
 
+
         nbr_occurences = sum((imwords > 0)*1, axis=0)
 
+        print(nbr_occurences)
+        print(nbr_images)
         self.idf = log((1.0*nbr_images) / (1.0 * nbr_occurences))
         self.trainingdata = featurefiles
 
