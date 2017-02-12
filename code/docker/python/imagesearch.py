@@ -2,7 +2,8 @@
 # !/usr/bin/python3
 
 import pickle
-from sqlite3 import dbpi2 as sqlite
+from sqlite3 import dbapi2 as sqlite
+
 
 class Indexer(object):
     """
@@ -26,7 +27,7 @@ class Indexer(object):
     def create_tables(self):
         self.con.execute("create table imlist(filename)")
         self.con.execute("create table imwords(imid, wordid, vocname)")
-        self.con.execute("create table imhistogram(imid, histogram, vocname)")
+        self.con.execute("create table imhistograms(imid, histogram, vocname)")
         self.con.execute("create index im_idx on imlist(filename)")
         self.con.execute("create index wordid_idx on imwords(wordid)")
         self.con.execute("create index imid_idx on imwords(imid)")
@@ -47,7 +48,7 @@ class Indexer(object):
         imid = self.get_id(imname)
 
         # Get the word
-        imwords = self.voc.paroject(descr)
+        imwords = self.voc.project(descr)
         nbr_words = imwords.shape[0]
 
         # Relation the image to the each words
@@ -83,3 +84,50 @@ class Indexer(object):
             return cur.lastrowid
         else:
             return res[0]
+
+
+class Searcher(object):
+    """
+    Data Base Searcher
+    """
+    def __init__(self, db, voc):
+        """
+        Initialize database name and vocabuary
+        :param db:
+        :param voc:
+        """
+        self.con = sqlite.connect(db)
+        self.voc = voc
+
+    def __del__(self):
+        self.con.close()
+
+    def candidates_from_word(self, imword):
+        """
+        Get the image list include by the imword
+        :param imword:
+        :return:
+        """
+        im_ids = self.con.execute(
+            "select distinct imid from imwords where wordid=%d" % imword
+        ).fetchall()
+        return [i[0] for i in im_ids]
+
+    def candidates_from_histogram(self, imwords):
+        """
+        Get the multi simillaier word image list
+        :param imwords:
+        :return:
+        """
+        words = imwords.nonzeros()[0]
+
+        candidates = []
+        for word in words:
+            c = self.candidates_from_word(word)
+            candidates += c
+
+        tmp = [(w, candidates.count(w)) for w in set(candidates)]
+        tmp.sort(cmp=lambda x,y:cmp[x[1], y[1]])
+        tmp.reverse()
+
+        return [w[0] for w in tmp]
