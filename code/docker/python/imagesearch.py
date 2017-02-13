@@ -3,6 +3,7 @@
 
 import pickle
 from sqlite3 import dbapi2 as sqlite
+from functools import cmp_to_key
 
 
 class Indexer(object):
@@ -127,7 +128,45 @@ class Searcher(object):
             candidates += c
 
         tmp = [(w, candidates.count(w)) for w in set(candidates)]
-        tmp.sort(cmp=lambda x,y:cmp[x[1], y[1]])
+        tmp.sort(cmp=lambda x,y:cmp(x[1], y[1]))
         tmp.reverse()
 
         return [w[0] for w in tmp]
+
+    def candidates_from_word(self, imword):
+        """
+        Get the Image list include in the imword
+        :param imword:
+        :return:
+        """
+        im_ids = self.con.execute("select distinct imid from imwords where wordid=%d "
+                                  % imword).fetchall()
+        return [i[0] for i in im_ids]
+
+    def candidates_from_histogram(self, imwords):
+        """
+        Get the image list include in the multiple similiar words
+        :param imwords:
+        :return:
+        """
+
+        words = imwords.nonzero()[0]
+
+        candidates = []
+        for word in words:
+            c = self.candidates_from_word(word)
+            candidates += c
+
+        tmp = [(w, candidates.count(w)) for w in set(candidates)]
+        sorted(tmp, key=cmp_to_key(cmp))
+        tmp.reverse()
+
+        return [w[0] for w in tmp]
+    
+def cmp(a, b):
+    if a == b:
+        return 0
+    if a < b:
+        return -1
+    else:
+        return 1
