@@ -4,6 +4,7 @@
 import pickle
 from sqlite3 import dbapi2 as sqlite
 from functools import cmp_to_key
+from math import sqrt
 
 
 class Indexer(object):
@@ -162,7 +163,56 @@ class Searcher(object):
         tmp.reverse()
 
         return [w[0] for w in tmp]
-    
+
+    def get_imhistogram(self, imname):
+        """
+        Return the word histogram
+        :param imname:
+        :return:
+        """
+        im_id = self.con.execute(
+            "select rowid from imlist where filename='%s'" % imname).fetchone()
+        s = self.con.execute(
+            "select histogram from imhistograms where rowid='%d'" % im_id
+        ).fetchone()
+        return pickle.loads(s[0])
+
+    def query(self, imname):
+        """
+        Get the Imname image list
+        :param imname:
+        :return:
+        """
+        h = self.get_imhistogram(imname=imname)
+        candidates = self.candidates_from_histogram(h)
+
+        matchscores = []
+        for imid in candidates:
+            cand_name = self.con.execute(
+                "select filename from imlist where rowid=%d" % imid
+            ).fetchone()
+            cand_h = self.get_imhistogram(cand_name)
+            cand_dist = sqrt(sum((h - cand_h)**2))
+            matchscores.append((cand_dist, imid))
+
+        matchscores.sort()
+        return matchscores
+
+    def compute_ukbench_score(src, imlist):
+        """
+        Return the best fourth and the correct average score
+        :param imlist:
+        :return:
+        """
+        nbr_images = len(imlist)
+        pos = zeros((nbr_images, 4))
+        for i in range(nbr_images):
+            pos[i] = [w[1] - 1 for w in src.query(imlist[i])[:4]]
+
+        score = array([ (pos[i]//4)==(i//4) for i in range(nbr_images)]) * 1.0
+        return sum(score) / (nbr_images)
+
+
 def cmp(a, b):
     if a == b:
         return 0
