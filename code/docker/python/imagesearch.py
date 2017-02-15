@@ -5,6 +5,7 @@ import pickle
 from sqlite3 import dbapi2 as sqlite
 from functools import cmp_to_key
 from math import sqrt
+from numpy import *
 
 
 class Indexer(object):
@@ -150,7 +151,6 @@ class Searcher(object):
         :param imwords:
         :return:
         """
-
         words = imwords.nonzero()[0]
 
         candidates = []
@@ -172,10 +172,11 @@ class Searcher(object):
         """
         im_id = self.con.execute(
             "select rowid from imlist where filename='%s'" % imname).fetchone()
-        s = self.con.execute(
-            "select histogram from imhistograms where rowid='%d'" % im_id
-        ).fetchone()
-        return pickle.loads(s[0])
+        if im_id is not None:
+            s = self.con.execute(
+                "select histogram from imhistograms where rowid='%d'" % im_id
+            ).fetchone()
+            return pickle.loads(s[0])
 
     def query(self, imname):
         """
@@ -184,33 +185,37 @@ class Searcher(object):
         :return:
         """
         h = self.get_imhistogram(imname=imname)
-        candidates = self.candidates_from_histogram(h)
+        if h is not None:
+            candidates = self.candidates_from_histogram(h)
 
-        matchscores = []
-        for imid in candidates:
-            cand_name = self.con.execute(
-                "select filename from imlist where rowid=%d" % imid
-            ).fetchone()
-            cand_h = self.get_imhistogram(cand_name)
-            cand_dist = sqrt(sum((h - cand_h)**2))
-            matchscores.append((cand_dist, imid))
+            matchscores = []
+            for imid in candidates:
+                cand_name = self.con.execute(
+                    "select filename from imlist where rowid=%d" % imid
+                ).fetchone()
+                cand_h = self.get_imhistogram(cand_name)
+                cand_dist = sqrt(sum((h - cand_h)**2))
+                matchscores.append((cand_dist, imid))
 
-        matchscores.sort()
-        return matchscores
+            matchscores.sort()
+            return matchscores
 
-    def compute_ukbench_score(src, imlist):
-        """
-        Return the best fourth and the correct average score
-        :param imlist:
-        :return:
-        """
-        nbr_images = len(imlist)
-        pos = zeros((nbr_images, 4))
-        for i in range(nbr_images):
-            pos[i] = [w[1] - 1 for w in src.query(imlist[i])[:4]]
+def compute_ukbench_score(src, imlist):
+    """
+    Return the best fourth and the correct average score
+    :param imlist:
+    :return:
+    """
+    nbr_images = len(imlist)
+    pos = zeros((nbr_images, 4))
+    for i in range(nbr_images):
+        query_data = src.query(imlist[i])
+        if query_data is not None:
+            for w in query_data[:4]:
+                pos[i] = [w[1] - 1]
 
-        score = array([ (pos[i]//4)==(i//4) for i in range(nbr_images)]) * 1.0
-        return sum(score) / (nbr_images)
+    score = array([ (pos[i]//4)==(i//4) for i in range(nbr_images)]) * 1.0
+    return sum(score) / (nbr_images)
 
 
 def cmp(a, b):
