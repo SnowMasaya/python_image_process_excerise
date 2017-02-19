@@ -6,6 +6,8 @@ from sqlite3 import dbapi2 as sqlite
 from functools import cmp_to_key
 from math import sqrt
 from numpy import *
+from PIL import Image
+from matplotlib.pyplot import imshow
 
 
 class Indexer(object):
@@ -200,6 +202,17 @@ class Searcher(object):
             matchscores.sort()
             return matchscores
 
+    def get_filename(self, imid):
+        """
+        Return the file name relationship with the image id
+        :param imid:
+        :return:
+        """
+        s = self.con.execute(
+            "select filename from imlist where rowid='%d'" % imid
+        ).fetchone()
+        return s[0]
+
 def compute_ukbench_score(src, imlist):
     """
     Return the best fourth and the correct average score
@@ -217,6 +230,21 @@ def compute_ukbench_score(src, imlist):
     score = array([ (pos[i]//4)==(i//4) for i in range(nbr_images)]) * 1.0
     return sum(score) / (nbr_images)
 
+def plot_results(src, res):
+    """
+    Show the search result image
+    :param src:
+    :param res:
+    :return:
+    """
+    figure()
+    nbr_results = len(res)
+    for i in range(nbr_results):
+        imname = src.get_filename(res[i])
+        subplot(1, nbr_results, i + 1)
+        imshow(array(Image.open(imname.strip())))
+        axis("off")
+    show()
 
 def cmp(a, b):
     if a == b:
