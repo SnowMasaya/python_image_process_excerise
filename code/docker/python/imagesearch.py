@@ -8,6 +8,7 @@ from math import sqrt
 from numpy import *
 from PIL import Image
 from matplotlib.pyplot import imshow
+from pylab import *
 
 
 class Indexer(object):
